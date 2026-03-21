@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foresight — Mercado</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    .market-detail-header { padding: 28px 30px 0; }
+    .back-btn {
+      background: none; border: none;
+      color: var(--muted); font-family: var(--font);
+      font-size: 13px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 20px; transition: color 0.15s; padding: 0;
+    }
+    .back-btn:hover { color: var(--text); }
+    .detail-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px; padding: 24px 30px;
+    }
+    .detail-question {
+      font-size: 24px; font-weight: 800;
+      line-height: 1.3; letter-spacing: -0.02em; margin-bottom: 12px;
+    }
+    .detail-meta { display: flex; gap: 10px; align-items: center; margin-bottom: 24px; }
+    .detail-description {
+      font-size: 14px; color: var(--muted);
+      line-height: 1.7; margin-bottom: 28px;
+      padding: 16px; background: var(--surface2);
+      border-radius: var(--radius-md); border: 1px solid var(--border);
+    }
+    .vote-section { margin-bottom: 28px; }
+    .vote-title {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 14px;
+    }
+    .vote-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .vote-btn {
+      flex: 1; padding: 16px; border-radius: var(--radius-lg);
+      border: 1px solid var(--border); background: var(--surface2);
+      cursor: pointer; transition: all 0.15s;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .vote-btn:hover { transform: translateY(-2px); }
+    .vote-yes:hover { background: rgba(62,207,178,0.08); border-color: rgba(62,207,178,0.35); }
+    .vote-no:hover  { background: rgba(242,107,80,0.08); border-color: rgba(242,107,80,0.35); }
+    .vote-btn-label { font-size: 16px; font-weight: 800; letter-spacing: 0.04em; }
+    .vote-yes .vote-btn-label { color: var(--teal); }
+    .vote-no  .vote-btn-label { color: var(--coral); }
+    .vote-btn-pct  { font-family: var(--mono); font-size: 22px; font-weight: 700; }
+    .vote-btn-odds { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+    .vote-bar {
+      height: 6px; background: var(--surface3);
+      border-radius: 3px; overflow: hidden; display: flex; margin-bottom: 20px;
+    }
+    .vote-bar-yes { background: var(--teal); transition: width 0.6s ease; }
+    .vote-bar-no  { background: var(--coral); }
+    .amount-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .amount-input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 10px 14px;
+      color: var(--text); font-family: var(--mono); font-size: 15px;
+      outline: none; transition: border-color 0.15s;
+    }
+    .amount-input:focus { border-color: var(--border2); }
+    .amount-suffix { font-family: var(--mono); font-size: 13px; color: var(--muted); font-weight: 700; }
+    .quick-amounts { display: flex; gap: 6px; margin-bottom: 18px; }
+    .quick-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 5px 10px;
+      font-family: var(--mono); font-size: 12px; color: var(--muted);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .quick-btn:hover { color: var(--text); border-color: var(--border2); }
+    .market-stats-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px; position: sticky; top: 90px;
+    }
+    .mstat-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .mstat-row:last-child { border-bottom: none; }
+    .mstat-label { font-size: 12px; color: var(--muted); }
+    .mstat-value { font-family: var(--mono); font-size: 13px; font-weight: 700; }
+    .creator-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .creator-avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--surface3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+    }
+    .creator-name { font-size: 13px; color: var(--muted); }
+    .creator-name strong { color: var(--text); }
+    .already-bet {
+      background: rgba(62,207,178,0.08); border: 1px solid rgba(62,207,178,0.3);
+      border-radius: var(--radius-md); padding: 14px 16px;
+      font-size: 13px; color: var(--teal); margin-bottom: 16px;
+    }
+    .not-logged {
+      background: rgba(232,197,71,0.06); border: 1px solid rgba(232,197,71,0.2);
+      border-radius: var(--radius-md); padding: 14px 16px;
+      font-size: 13px; color: var(--accent); margin-bottom: 16px;
+    }
+    @media (max-width: 768px) {
+      .detail-layout { grid-template-columns: 1fr; padding: 16px; }
+      .market-stats-card { position: static; }
+      .detail-question { font-size: 18px; }
+      .market-detail-header { padding: 16px 16px 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+
+  <div class="market-detail-header">
+    <button class="back-btn" onclick="history.back()">← Volver a mercados</button>
+  </div>
+
+  <div class="detail-layout" id="detail-layout">
+    <div style="color:var(--muted);font-size:14px">Cargando mercado...</div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/mobile.js"></script>
+  <script src="js/wallet.js"></script>
+  <script>
+    let currentMarket = null;
+    let selectedSide  = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      renderNav('index');
+      renderBottomNav('index');
+
+      const params = new URLSearchParams(location.search);
+      const id = params.get('id');
+      if (!id) { location.href = 'index.html'; return; }
+
+      try {
+        const market = await getMarket(id);
+        if (market.error) throw new Error(market.error);
+        currentMarket = market;
+        renderMarketDetail(market);
+      } catch(e) {
+        document.getElementById('detail-layout').innerHTML =
+          `<div style="color:var(--coral);font-size:14px">Error cargando el mercado. <a href="index.html" style="color:var(--accent)">Volver</a></div>`;
+      }
+    });
+
+    async function renderMarketDetail(m) {
+      const layout = document.getElementById('detail-layout');
+      const yes = m.yes_pct ?? 50;
+      const no  = m.no_pct  ?? 50;
+      const closes = m.closes_at ? formatDate(m.closes_at) : '—';
+      const pool = Number(m.pool).toLocaleString();
+      const userId = localStorage.getItem('foresight_user_id');
+
+      // Comprobar si el usuario ya apostó
+      let alreadyBet = false;
+      if (userId) {
+        try {
+          const preds = await getUserPredictions(userId);
+          alreadyBet = Array.isArray(preds) && preds.some(p => p.market_id === m.id);
+        } catch(e) {}
+      }
+
+      const creatorInit = m.created_by ? m.created_by.slice(0,2).toUpperCase() : '??';
+      const creatorName = m.created_by ? `${m.created_by.slice(0,8)}...` : 'Anónimo';
+      const potentialWin = (1 / (yes / 100) * 1).toFixed(2);
+
+      const loginWarning = !userId
+        ? `<div class="not-logged">Conecta tu wallet para predecir</div>`
+        : '';
+
+      const alreadyBetMsg = alreadyBet
+        ? `<div class="already-bet">✓ Ya has apostado en este mercado</div>`
+        : '';
+
+      layout.innerHTML = `
+        <div class="fade-up">
+          <div class="detail-question">${m.question}</div>
+          <div class="detail-meta">
+            <span class="cat-tag ${m.category}">${m.category}</span>
+            <span class="muted" style="font-size:13px">Cierra en ${closes}</span>
+          </div>
+          <div class="detail-description">${m.description || 'Sin descripción'}</div>
+
+          <div class="vote-section">
+            <div class="vote-title">Tu predicción</div>
+            ${loginWarning}
+            ${alreadyBetMsg}
+            <div class="vote-row">
+              <button class="vote-btn vote-yes" onclick="selectSide('yes')" ${alreadyBet || !userId ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+                <div class="vote-btn-label">SÍ</div>
+                <div class="vote-btn-pct">${yes}%</div>
+                <div class="vote-btn-odds">probabilidad</div>
+              </button>
+              <button class="vote-btn vote-no" onclick="selectSide('no')" ${alreadyBet || !userId ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+                <div class="vote-btn-label">NO</div>
+                <div class="vote-btn-pct">${no}%</div>
+                <div class="vote-btn-odds">probabilidad</div>
+              </button>
+            </div>
+            <div class="vote-bar">
+              <div class="vote-bar-yes" style="width:${yes}%"></div>
+              <div class="vote-bar-no"  style="width:${no}%"></div>
+            </div>
+
+            ${!alreadyBet && userId ? `
+            <label class="input-label">Cantidad a apostar</label>
+            <div class="amount-row">
+              <input class="amount-input" id="amount-input" type="number"
+                     min="0.1" max="10" step="0.1" value="1"
+                     oninput="updatePotential()">
+              <span class="amount-suffix">USDC</span>
+            </div>
+            <div class="quick-amounts">
+              <button class="quick-btn" onclick="setAmount(0.5)">0.5</button>
+              <button class="quick-btn" onclick="setAmount(1)">1</button>
+              <button class="quick-btn" onclick="setAmount(2)">2</button>
+              <button class="quick-btn" onclick="setAmount(5)">5</button>
+              <button class="quick-btn" onclick="setAmount(10)">MAX</button>
+            </div>
+            <button class="btn-primary" id="confirm-btn" onclick="confirmBet()"
+                    style="width:100%;opacity:0.4;cursor:not-allowed" disabled>
+              Selecciona SÍ o NO para continuar
+            </button>
+            ` : ''}
+          </div>
+        </div>
+
+        <div>
+          <div class="market-stats-card fade-up-1">
+            <div class="panel-title" style="margin-bottom:14px">Stats del mercado</div>
+            <div class="creator-row">
+              <div class="creator-avatar">${creatorInit}</div>
+              <div class="creator-name">Creado por <strong>${creatorName}</strong></div>
+            </div>
+            <div class="mstat-row">
+              <span class="mstat-label">Pool total</span>
+              <span class="mstat-value">${pool} USDC</span>
+            </div>
+            <div class="mstat-row">
+              <span class="mstat-label">Participantes</span>
+              <span class="mstat-value">${Number(m.participants).toLocaleString()}</span>
+            </div>
+            <div class="mstat-row">
+              <span class="mstat-label">Cierra en</span>
+              <span class="mstat-value">${closes}</span>
+            </div>
+            <div class="mstat-row">
+              <span class="mstat-label">Fee plataforma</span>
+              <span class="mstat-value">2%</span>
+            </div>
+            <div class="mstat-row">
+              <span class="mstat-label">Fee creador</span>
+              <span class="mstat-value">1%</span>
+            </div>
+            <div class="mstat-row">
+              <span class="mstat-label">Si aciertas (×1 USDC)</span>
+              <span class="mstat-value teal" id="potential-win">${potentialWin} USDC</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectSide(side) {
+      if (!currentMarket) return;
+      selectedSide = side;
+      document.querySelectorAll('.vote-btn').forEach(b => {
+        b.style.opacity = '0.5'; b.style.transform = '';
+        b.style.background = ''; b.style.borderColor = '';
+      });
+      const active = document.querySelector(`.vote-${side}`);
+      active.style.opacity = '1';
+      active.style.transform = 'translateY(-2px)';
+      active.style.background = side === 'yes' ? 'rgba(62,207,178,0.1)' : 'rgba(242,107,80,0.1)';
+      active.style.borderColor = side === 'yes' ? 'rgba(62,207,178,0.4)' : 'rgba(242,107,80,0.4)';
+      const btn = document.getElementById('confirm-btn');
+      if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.textContent = `Confirmar: ${side === 'yes' ? 'SÍ' : 'NO'}`;
+      }
+      updatePotential();
+    }
+
+    function setAmount(val) {
+      const input = document.getElementById('amount-input');
+      if (input) { input.value = val; updatePotential(); }
+    }
+
+    function updatePotential() {
+      if (!currentMarket || !selectedSide) return;
+      const amount = parseFloat(document.getElementById('amount-input')?.value) || 1;
+      const pct = selectedSide === 'yes' ? currentMarket.yes_pct : currentMarket.no_pct;
+      const potential = (amount / (pct / 100) * 0.97).toFixed(2);
+      const el = document.getElementById('potential-win');
+      if (el) el.textContent = potential + ' USDC';
+    }
+
+    async function confirmBet() {
+      if (!selectedSide || !currentMarket) return;
+      const amount = parseFloat(document.getElementById('amount-input')?.value);
+      if (!amount || amount < 0.1 || amount > 10) {
+        alert('Cantidad entre 0.1 y 10 USDC'); return;
+      }
+
+      const btn = document.getElementById('confirm-btn');
+      btn.textContent = 'Confirmando...';
+      btn.disabled = true;
+
+      const result = await placePrediction(currentMarket.id, selectedSide, amount);
+
+      if (result.error) {
+        btn.textContent = result.error;
+        btn.style.background = 'rgba(242,107,80,0.2)';
+        setTimeout(() => {
+          btn.textContent = `Confirmar: ${selectedSide === 'yes' ? 'SÍ' : 'NO'}`;
+          btn.style.background = '';
+          btn.disabled = false;
+        }, 3000);
+        return;
+      }
+
+      btn.textContent = `✓ Apostado ${amount} USDC — ${selectedSide === 'yes' ? 'SÍ' : 'NO'}`;
+      btn.style.background = selectedSide === 'yes' ? 'var(--teal)' : 'var(--coral)';
+      btn.style.color = '#fff';
+      document.querySelectorAll('.vote-btn').forEach(b => b.onclick = null);
+
+      // Recargar el mercado para actualizar porcentajes
+      setTimeout(async () => {
+        const updated = await getMarket(currentMarket.id);
+        if (!updated.error) { currentMarket = updated; renderMarketDetail(updated); }
+      }, 1500);
+    }
+  </script>
+</body>
+</html>

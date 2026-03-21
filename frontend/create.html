@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foresight — Crear mercado</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    .create-layout {
+      max-width: 680px; margin: 0 auto;
+      padding: 36px 24px;
+    }
+    .create-title { margin-bottom: 8px; }
+    .create-subtitle { color: var(--muted); font-size: 14px; margin-bottom: 36px; }
+
+    .form-group { margin-bottom: 22px; }
+
+    .cat-selector {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;
+    }
+    .cat-option {
+      padding: 7px 16px; border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      font-size: 13px; font-weight: 600;
+      color: var(--muted); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .cat-option:hover { color: var(--text); border-color: var(--border2); }
+    .cat-option.selected.crypto   { color: var(--accent); border-color: rgba(232,197,71,0.4); background: rgba(232,197,71,0.08); }
+    .cat-option.selected.politics { color: var(--purple); border-color: rgba(155,127,244,0.4); background: rgba(155,127,244,0.08); }
+    .cat-option.selected.sports   { color: var(--teal);   border-color: rgba(62,207,178,0.4);  background: rgba(62,207,178,0.08); }
+    .cat-option.selected.science  { color: var(--coral);  border-color: rgba(242,107,80,0.4);  background: rgba(242,107,80,0.08); }
+
+    .date-row { display: flex; gap: 10px; }
+    .date-row .form-group { flex: 1; }
+
+    .fee-info {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 18px 20px;
+      margin-bottom: 24px;
+    }
+    .fee-row {
+      display: flex; justify-content: space-between;
+      padding: 7px 0; border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .fee-row:last-child { border-bottom: none; }
+    .fee-label { color: var(--muted); }
+    .fee-value { font-family: var(--mono); font-weight: 700; }
+
+    .deposit-info {
+      background: rgba(232,197,71,0.06);
+      border: 1px solid rgba(232,197,71,0.18);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 24px;
+      font-size: 13px; color: var(--muted); line-height: 1.6;
+    }
+    .deposit-info strong { color: var(--accent); }
+
+    .preview-card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .preview-label {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 12px;
+    }
+    .preview-question { font-size: 16px; font-weight: 700; line-height: 1.4; }
+
+    .char-count {
+      font-size: 11px; color: var(--muted);
+      font-family: var(--mono); text-align: right;
+      margin-top: 4px;
+    }
+    .char-count.warn { color: var(--coral); }
+    .validation-box { margin-top:10px;padding:12px 16px;border-radius:8px;font-size:13px;border:1px solid;display:none; }
+    .validation-box.validating { background:rgba(122,120,128,0.1);border-color:rgba(122,120,128,0.3);color:#7a7880; }
+    .validation-box.valid  { background:rgba(62,207,178,0.08);border-color:rgba(62,207,178,0.3);color:#3ecfb2; }
+    .validation-box.invalid{ background:rgba(242,107,80,0.08);border-color:rgba(242,107,80,0.3);color:#f26b50; }
+    .val-icon { font-weight:700;margin-right:6px; }
+    .val-suggestion { margin-top:6px;font-size:12px;opacity:0.8; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .val-spinner { display:inline-block;width:10px;height:10px;border:2px solid #7a7880;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:8px; }
+  </style>
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+
+  <div class="create-layout">
+    <h1 class="create-title fade-up">Crear un mercado</h1>
+    <p class="create-subtitle fade-up-1">
+      Cualquier pregunta con resolución objetiva verificable. La IA rechaza preguntas ambiguas.
+    </p>
+
+    <!-- PREGUNTA -->
+    <div class="form-group fade-up-1">
+      <label class="input-label">Pregunta del mercado</label>
+      <input class="input" id="question-input" type="text"
+             maxlength="120"
+             placeholder="¿Ejemplo: Superará Bitcoin los $150,000 antes de 2027?"
+             oninput="onQuestionInput(this)">
+      <div class="char-count" id="char-count">0 / 120</div>
+      <div class="validation-box" id="validation-feedback"></div>
+    </div>
+
+    <!-- DESCRIPCIÓN -->
+    <div class="form-group fade-up-1">
+      <label class="input-label">Criterio de resolución</label>
+      <textarea class="input" id="desc-input" maxlength="300" rows="3"
+                placeholder="Describe exactamente cuándo y cómo se resuelve este mercado..."></textarea>
+    </div>
+
+    <!-- CATEGORÍA -->
+    <div class="form-group fade-up-2">
+      <label class="input-label">Categoría</label>
+      <div class="cat-selector">
+        <div class="cat-option crypto"   onclick="selectCat(this,'crypto')">Crypto</div>
+        <div class="cat-option politics" onclick="selectCat(this,'politics')">Política</div>
+        <div class="cat-option sports"   onclick="selectCat(this,'sports')">Deportes</div>
+        <div class="cat-option science"  onclick="selectCat(this,'science')">Ciencia & Tech</div>
+      </div>
+    </div>
+
+    <!-- FECHA DE CIERRE -->
+    <div class="form-group fade-up-2">
+      <label class="input-label">Fecha de cierre</label>
+      <input class="input" id="close-date" type="date"
+             style="color-scheme:dark">
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="preview-card fade-up-2" id="preview-card" style="display:none">
+      <div class="preview-label">Vista previa</div>
+      <div class="preview-question" id="preview-question"></div>
+    </div>
+
+    <!-- INFO FEES -->
+    <div class="fee-info fade-up-3">
+      <div class="fee-row">
+        <span class="fee-label">Tu fee como creador</span>
+        <span class="fee-value accent">1% del pool</span>
+      </div>
+      <div class="fee-row">
+        <span class="fee-label">Fee plataforma</span>
+        <span class="fee-value">2% del pool</span>
+      </div>
+      <div class="fee-row">
+        <span class="fee-label">A los ganadores</span>
+        <span class="fee-value teal">97% del pool</span>
+      </div>
+    </div>
+
+    <!-- DEPÓSITO -->
+    <div class="deposit-info fade-up-3">
+      Crear un mercado requiere un depósito de <strong>1 USDC</strong> que se devuelve
+      al resolver el mercado, más el 1% de fee sobre el volumen total generado.
+    </div>
+
+    <!-- BOTÓN -->
+    <button class="btn-primary fade-up-3" id="submit-btn"
+            onclick="submitMarket()"
+            style="width:100%;font-size:15px;padding:14px">
+      Crear mercado (depósito: 1 USDC)
+    </button>
+  </div>
+<script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/mobile.js"></script>
+  <script src="js/wallet.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      renderNav('create');
+      renderBottomNav('create');
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('close-date').min = tomorrow.toISOString().split('T')[0];
+    });
+
+    let selectedCat = null;
+    let validateTimeout = null;
+
+    function selectCat(el, cat) {
+      document.querySelectorAll('.cat-option').forEach(o => o.classList.remove('selected','crypto','politics','sports','science'));
+      el.classList.add('selected', cat);
+      selectedCat = cat;
+    }
+
+    function onQuestionInput(input) {
+      const len = input.value.length;
+      const cc = document.getElementById('char-count');
+      cc.textContent = `${len} / 120`;
+      cc.className = 'char-count' + (len > 100 ? ' warn' : '');
+      const preview = document.getElementById('preview-card');
+      const pq = document.getElementById('preview-question');
+      if (input.value.trim().length > 10) {
+        preview.style.display = 'block';
+        pq.textContent = input.value;
+      } else {
+        preview.style.display = 'none';
+        clearValidation(); return;
+      }
+      clearTimeout(validateTimeout);
+      if (input.value.trim().length > 20) {
+        showValidating();
+        validateTimeout = setTimeout(() => validateQuestion(input.value.trim()), 1200);
+      }
+    }
+
+    function showValidating() {
+      const el = document.getElementById('validation-feedback');
+      if (!el) return;
+      el.style.display = 'block';
+      el.className = 'validation-box validating';
+      el.innerHTML = '<span class="val-spinner"></span> Analizando con IA...';
+    }
+
+    function clearValidation() {
+      const el = document.getElementById('validation-feedback');
+      if (el) el.style.display = 'none';
+    }
+
+    async function validateQuestion(question) {
+      const desc = document.getElementById('desc-input').value.trim();
+      try {
+        const res = await fetch(`${BASE_URL}/markets/validate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question, description: desc }),
+        });
+        const data = await res.json();
+        showValidationResult(data);
+      } catch(e) { clearValidation(); }
+    }
+
+    function showValidationResult(result) {
+      const el = document.getElementById('validation-feedback');
+      if (!el) return;
+      el.style.display = 'block';
+      if (result.valid) {
+        el.className = 'validation-box valid';
+        el.innerHTML = '<span class="val-icon">✓</span> Pregunta válida — se puede publicar';
+      } else {
+        el.className = 'validation-box invalid';
+        el.innerHTML = `<span class="val-icon">✕</span> <strong>Rechazada:</strong> ${result.reason}`
+          + (result.suggestion ? `<div class="val-suggestion">Sugerencia: ${result.suggestion}</div>` : '');
+      }
+    }
+
+    async function submitMarket() {
+      const q    = document.getElementById('question-input').value.trim();
+      const d    = document.getElementById('desc-input').value.trim();
+      const date = document.getElementById('close-date').value;
+      if (!q)           { alert('Escribe la pregunta del mercado.'); return; }
+      if (!selectedCat) { alert('Selecciona una categoría.'); return; }
+      if (!date)        { alert('Elige una fecha de cierre.'); return; }
+      if (!d)           { alert('Describe el criterio de resolución.'); return; }
+
+      const btn = document.getElementById('submit-btn');
+      btn.textContent = 'Validando con IA...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`${BASE_URL}/markets`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question: q,
+            description: d,
+            category: selectedCat,
+            closes_at: new Date(date).toISOString(),
+            created_by: getCurrentUserId(),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showValidationResult({ valid: false, reason: data.error, suggestion: data.suggestion });
+          btn.textContent = 'Crear mercado (depósito: 1 USDC)';
+          btn.disabled = false;
+          return;
+        }
+        btn.textContent = '✓ Mercado publicado';
+        btn.style.background = 'var(--teal)';
+        setTimeout(() => location.href = 'index.html', 1500);
+      } catch(e) {
+        btn.textContent = 'Error de conexión — reintentar';
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

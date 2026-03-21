@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foresight — Perfil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    .profile-layout {
+      max-width: 860px; margin: 0 auto; padding: 36px 24px;
+    }
+
+    /* HERO */
+    .profile-hero {
+      display: flex; align-items: flex-start;
+      gap: 24px; margin-bottom: 36px;
+    }
+    .profile-avatar-lg {
+      width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--purple), var(--teal));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 800;
+    }
+    .profile-info { flex: 1; }
+    .profile-username { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .profile-wallet  { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+    .profile-badges  { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .badge {
+      font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
+      letter-spacing: 0.04em;
+    }
+    .badge-gold    { background: rgba(232,197,71,0.1); color: var(--accent); border: 1px solid rgba(232,197,71,0.25); }
+    .badge-teal    { background: rgba(62,207,178,0.1); color: var(--teal);   border: 1px solid rgba(62,207,178,0.25); }
+    .badge-purple  { background: rgba(155,127,244,0.1); color: var(--purple); border: 1px solid rgba(155,127,244,0.25); }
+
+    /* STAT GRID GRANDE */
+    .big-stat-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 10px; margin-bottom: 36px;
+    }
+    .big-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 16px;
+      transition: border-color 0.15s;
+    }
+    .big-stat:hover { border-color: var(--border2); }
+    .big-stat-label {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px;
+    }
+    .big-stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+    .big-stat-sub   { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
+
+    /* SECCIONES */
+    .section { margin-bottom: 32px; }
+    .section-head {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 14px;
+      padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    }
+
+    /* Reputación por categoría */
+    .rep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .rep-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 16px;
+    }
+    .rep-top {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 10px;
+    }
+    .rep-cat { font-size: 13px; font-weight: 700; }
+    .rep-accuracy { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+    .rep-bar-bg { height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+    .rep-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+    .rep-meta { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+    /* Historial de predicciones */
+    .history-item {
+      display: grid; grid-template-columns: 1fr auto auto;
+      gap: 16px; align-items: center;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-q { font-size: 13px; font-weight: 500; line-height: 1.4; }
+    .history-cat { font-size: 10px; color: var(--muted); margin-top: 3px; font-family: var(--mono); }
+    .history-result {
+      font-family: var(--mono); font-size: 13px; font-weight: 700;
+      text-align: right; white-space: nowrap;
+    }
+    .history-pnl { font-family: var(--mono); font-size: 13px; font-weight: 700; text-align: right; white-space: nowrap; }
+    .pnl-pos { color: var(--teal); }
+    .pnl-neg { color: var(--coral); }
+  </style>
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+
+  <div class="profile-layout">
+
+    <!-- HERO -->
+    <div class="profile-hero fade-up">
+      <div class="profile-avatar-lg">${''}</div>
+      <div class="profile-info">
+        <div class="profile-username" id="profile-username"></div>
+        <div class="profile-wallet">0x4f2a...c91b · <span class="accent">Ver en explorador →</span></div>
+        <div class="profile-badges" id="profile-badges"></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:4px">Balance</div>
+        <div style="font-family:var(--mono);font-size:22px;font-weight:700" id="profile-balance"></div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">USDC</div>
+      </div>
+    </div>
+
+    <!-- BIG STATS -->
+    <div class="big-stat-grid fade-up-1" id="big-stats"></div>
+
+    <!-- REPUTACIÓN POR CATEGORÍA -->
+    <div class="section fade-up-2">
+      <div class="section-head">Reputación onchain por categoría</div>
+      <div class="rep-grid" id="rep-grid"></div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="section fade-up-3">
+      <div class="section-head">Historial de predicciones</div>
+      <div id="history-list"></div>
+    </div>
+
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    const REP_BY_CAT = [
+      { cat: 'Crypto',   color: 'var(--accent)',  accuracy: 72, predictions: 38 },
+      { cat: 'Política', color: 'var(--purple)',  accuracy: 61, predictions: 21 },
+      { cat: 'Deportes', color: 'var(--teal)',    accuracy: 65, predictions: 18 },
+      { cat: 'Ciencia',  color: 'var(--coral)',   accuracy: 75, predictions: 12 },
+    ];
+
+    const HISTORY = [
+      { question: '¿Superará SOL los $300?',               cat: 'crypto',   side: 'SÍ',  result: 'ACERTÓ', pnl: +1.8  },
+      { question: '¿Gana España el Eurobasket 2025?',      cat: 'sports',   side: 'SÍ',  result: 'FALLÓ',  pnl: -0.5  },
+      { question: '¿Baja la inflación UE en marzo?',       cat: 'politics', side: 'SÍ',  result: 'ACERTÓ', pnl: +2.2  },
+      { question: '¿Llega BTC a $100K en 2025?',           cat: 'crypto',   side: 'SÍ',  result: 'ACERTÓ', pnl: +3.1  },
+      { question: '¿Ganará el PP las elecciones 2024?',    cat: 'politics', side: 'NO',  result: 'FALLÓ',  pnl: -1.0  },
+      { question: '¿Publicará Apple un VR nuevo en 2025?', cat: 'science',  side: 'SÍ',  result: 'ACERTÓ', pnl: +0.9  },
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderNav('profile');
+      renderBottomNav('profile');
+      renderProfile();
+    });
+
+    function renderProfile() {
+      // Hero
+      document.querySelector('.profile-avatar-lg').textContent = CURRENT_USER.initials;
+      document.getElementById('profile-username').textContent  = CURRENT_USER.username;
+      document.getElementById('profile-balance').textContent   = CURRENT_USER.balance.toFixed(1);
+      document.getElementById('profile-badges').innerHTML = `
+        <span class="badge badge-gold">◆ Liga ${CURRENT_USER.league}</span>
+        <span class="badge badge-teal">🔥 Racha ${CURRENT_USER.streak}d</span>
+        <span class="badge badge-purple">⚡ Top Crypto</span>
+      `;
+
+      // Big stats
+      const stats = [
+        { label: 'Precisión global', value: `${CURRENT_USER.accuracy}%`, sub: '+2.1% esta semana', cls: 'stat-up' },
+        { label: 'XP total',         value: `${(CURRENT_USER.xp/1000).toFixed(1)}k`, sub: 'Rango #23 Liga Oro', cls: '' },
+        { label: 'Predicciones',     value: CURRENT_USER.predictions, sub: '61 resueltas · 28 activas', cls: '' },
+        { label: 'Mercados creados', value: 3, sub: '187 participantes totales', cls: '' },
+      ];
+      document.getElementById('big-stats').innerHTML = stats.map(s => `
+        <div class="big-stat">
+          <div class="big-stat-label">${s.label}</div>
+          <div class="big-stat-value">${s.value}</div>
+          <div class="big-stat-sub ${s.cls}">${s.sub}</div>
+        </div>
+      `).join('');
+
+      // Reputación por categoría
+      document.getElementById('rep-grid').innerHTML = REP_BY_CAT.map(r => `
+        <div class="rep-card">
+          <div class="rep-top">
+            <div class="rep-cat" style="color:${r.color}">${r.cat}</div>
+            <div class="rep-accuracy" style="color:${r.color}">${r.accuracy}%</div>
+          </div>
+          <div class="rep-bar-bg">
+            <div class="rep-bar-fill" style="width:${r.accuracy}%;background:${r.color}"></div>
+          </div>
+          <div class="rep-meta">${r.predictions} predicciones</div>
+        </div>
+      `).join('');
+
+      // Historial
+      document.getElementById('history-list').innerHTML = HISTORY.map(h => `
+        <div class="history-item">
+          <div>
+            <div class="history-q">${h.question}</div>
+            <div class="history-cat">${h.cat} · Apostó: ${h.side}</div>
+          </div>
+          <div class="history-result" style="color:${h.result === 'ACERTÓ' ? 'var(--teal)' : 'var(--coral)'}">
+            ${h.result}
+          </div>
+          <div class="history-pnl ${h.pnl > 0 ? 'pnl-pos' : 'pnl-neg'}">
+            ${h.pnl > 0 ? '+' : ''}${h.pnl.toFixed(1)} USDC
+          </div>
+        </div>
+      `).join('');
+    }
+  </script>
+    <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/mobile.js"></script>
+  <script src="js/wallet.js"></script>
+</body>
+</html>

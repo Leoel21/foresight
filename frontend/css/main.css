@@ -1,0 +1,83 @@
+/* ─── VARIABLES ─────────────────────────────────────────── */
+:root {
+  --bg:       #0a0a0f;
+  --surface:  #111118;
+  --surface2: #18181f;
+  --surface3: #1f1f28;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.13);
+
+  --text:    #f0eee8;
+  --muted:   #7a7880;
+  --faint:   #3a3840;
+
+  --accent:  #e8c547;
+  --accent2: #c9a93a;
+  --teal:    #3ecfb2;
+  --coral:   #f26b50;
+  --purple:  #9b7ff4;
+
+  --font: 'Syne', sans-serif;
+  --mono: 'Space Mono', monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
+
+/* ─── RESET ──────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { font-size: 16px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font-family: var(--font); cursor: pointer; }
+input, textarea { font-family: var(--font); }
+
+/* ─── TIPOGRAFÍA ─────────────────────────────────────────── */
+h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; }
+h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+h3 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+
+.mono { font-family: var(--mono); }
+.muted { color: var(--muted); }
+.accent { color: var(--accent); }
+.teal { color: var(--teal); }
+.coral { color: var(--coral); }
+.purple { color: var(--purple); }
+
+/* ─── ANIMACIONES GLOBALES ───────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%     { opacity: 0.5; transform: scale(0.8); }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+
+.fade-up { animation: fadeUp 0.4s ease both; }
+.fade-up-1 { animation: fadeUp 0.4s ease 0.05s both; }
+.fade-up-2 { animation: fadeUp 0.4s ease 0.10s both; }
+.fade-up-3 { animation: fadeUp 0.4s ease 0.15s both; }
+.fade-up-4 { animation: fadeUp 0.4s ease 0.20s both; }
+
+/* ─── SCROLLBAR ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }

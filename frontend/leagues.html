@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foresight — Ligas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    .leagues-layout {
+      max-width: 860px; margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    .page-title   { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .page-subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; line-height: 1.6; }
+
+    /* ── TIER CARDS ─────────────────────────────────── */
+    .league-tiers {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px; margin-bottom: 36px;
+    }
+
+    .tier-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 16px;
+      cursor: pointer; transition: all 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .tier-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      opacity: 0.6;
+    }
+    .tier-card.bronze::before  { background: #cd7f32; }
+    .tier-card.silver::before  { background: #a8a9ad; }
+    .tier-card.gold::before    { background: var(--accent); }
+    .tier-card.diamond::before { background: linear-gradient(90deg, var(--purple), var(--teal)); }
+
+    .tier-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+    .tier-card.active-tier { border-color: var(--border2); background: var(--surface2); }
+
+    .tier-icon { font-size: 24px; margin-bottom: 10px; }
+    .tier-name {
+      font-size: 20px; font-weight: 800;
+      letter-spacing: -0.01em; margin-bottom: 4px;
+    }
+    .tier-card.bronze  .tier-name { color: #cd7f32; }
+    .tier-card.silver  .tier-name { color: #a8a9ad; }
+    .tier-card.gold    .tier-name { color: var(--accent); }
+    .tier-card.diamond .tier-name { color: var(--purple); }
+
+    .tier-range { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-bottom: 10px; }
+
+    .tier-prize {
+      font-size: 12px; font-weight: 700;
+      font-family: var(--mono); margin-bottom: 8px;
+    }
+    .tier-card.bronze  .tier-prize { color: #cd7f32; }
+    .tier-card.silver  .tier-prize { color: #a8a9ad; }
+    .tier-card.gold    .tier-prize { color: var(--accent); }
+    .tier-card.diamond .tier-prize { color: var(--teal); }
+
+    .tier-players { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+    .my-tier-badge {
+      display: inline-block; margin-top: 8px;
+      background: rgba(232,197,71,0.1); color: var(--accent);
+      border: 1px solid rgba(232,197,71,0.25);
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      padding: 2px 8px; border-radius: 10px; text-transform: uppercase;
+    }
+
+    /* ── SEMANA / TIMER ─────────────────────────────── */
+    .season-bar {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 16px;
+      margin-bottom: 28px; flex-wrap: wrap; gap: 12px;
+    }
+    .season-label { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .season-value { font-family: var(--mono); font-size: 16px; font-weight: 700; }
+
+    .timer-chips { display: flex; gap: 8px; }
+    .timer-chip {
+      background: var(--surface3); border-radius: var(--radius-sm);
+      padding: 6px 12px; text-align: center;
+    }
+    .timer-chip-val { font-family: var(--mono); font-size: 18px; font-weight: 700; display: block; }
+    .timer-chip-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+
+    /* ── TABS ──────────────────────────────────────── */
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .tab {
+      background: none; border: none;
+      color: var(--muted); font-family: var(--font);
+      font-size: 13px; font-weight: 600;
+      padding: 7px 16px; border-radius: var(--radius-sm);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .tab:hover  { color: var(--text); background: var(--surface2); }
+    .tab.active { color: var(--text); background: var(--surface3); }
+
+    /* ── LEADERBOARD TABLE ───────────────────────── */
+    .leagues-table-wrap { overflow-x: auto; }
+
+    .leagues-table {
+      width: 100%; border-collapse: collapse;
+    }
+    .leagues-table th {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      color: var(--muted); padding: 8px 12px;
+      text-align: left; border-bottom: 1px solid var(--border);
+    }
+    .leagues-table th:last-child,
+    .leagues-table td:last-child { text-align: right; }
+
+    .leagues-table td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .leagues-table tr:last-child td { border-bottom: none; }
+    .leagues-table tr:hover td { background: var(--surface2); }
+
+    .tr-me td { background: rgba(232,197,71,0.04) !important; }
+    .tr-me td:first-child { border-left: 2px solid var(--accent); }
+
+    .rank-cell { font-family: var(--mono); font-size: 13px; font-weight: 700; width: 40px; }
+    .rank-top  { color: var(--accent); }
+
+    .user-cell { display: flex; align-items: center; gap: 10px; }
+    .user-av {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .user-name  { font-weight: 600; }
+    .user-badge { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+
+    .xp-cell     { font-family: var(--mono); font-weight: 700; color: var(--teal); }
+    .acc-cell    { font-family: var(--mono); }
+    .preds-cell  { font-family: var(--mono); color: var(--muted); }
+    .promo-cell  { font-size: 11px; font-weight: 600; }
+    .promo-up    { color: var(--teal); }
+    .promo-safe  { color: var(--muted); }
+    .promo-down  { color: var(--coral); }
+
+    /* Zona de ascenso / descenso */
+    .zone-bar {
+      width: 4px; height: 100%;
+      position: absolute; left: 0; top: 0;
+    }
+
+    /* ── PREMIO INFO ─────────────────────────────── */
+    .prize-section {
+      margin-top: 28px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+    }
+    .prize-title { font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+    .prize-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+    }
+    .prize-row:last-child { border-bottom: none; }
+    .prize-pos   { color: var(--muted); }
+    .prize-amount { font-family: var(--mono); font-weight: 700; color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+
+  <div class="leagues-layout">
+    <h1 class="page-title fade-up">Ligas</h1>
+    <p class="page-subtitle fade-up-1">
+      Compites cada semana dentro de tu liga. Los mejores suben, los peores bajan.
+      La liga Diamante reparte un pool real en USDC entre los 50 mejores.
+    </p>
+
+    <!-- TIER CARDS -->
+    <div class="league-tiers fade-up-1" id="tier-cards"></div>
+
+    <!-- SEASON TIMER -->
+    <div class="season-bar fade-up-2">
+      <div>
+        <div class="season-label">Temporada actual</div>
+        <div class="season-value">Semana 12 · Marzo 2026</div>
+      </div>
+      <div>
+        <div class="season-label">Cierra en</div>
+        <div class="timer-chips" id="timer"></div>
+      </div>
+      <div>
+        <div class="season-label">Pool total esta semana</div>
+        <div class="season-value accent">4,820 USDC</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs" id="tabs">
+      <button class="tab active" onclick="switchTab(this,'gold')">◆ Liga Oro (mi liga)</button>
+      <button class="tab" onclick="switchTab(this,'diamond')">💎 Diamante</button>
+      <button class="tab" onclick="switchTab(this,'silver')">◈ Plata</button>
+      <button class="tab" onclick="switchTab(this,'bronze')">○ Bronce</button>
+    </div>
+
+    <!-- LEADERBOARD TABLE -->
+    <div class="leagues-table-wrap fade-up-3">
+      <table class="leagues-table" id="lb-table"></table>
+    </div>
+
+    <!-- PRIZE BREAKDOWN -->
+    <div class="prize-section fade-up-3" id="prize-section"></div>
+  </div>
+    <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/mobile.js"></script>
+  <script src="js/wallet.js"></script>
+  <script>
+    // ─── DATOS DE LIGAS ──────────────────────────────────────
+    const TIERS = [
+      {
+        id: 'bronze', label: 'Bronce',
+        range: 'Posiciones 151–300',
+        prize: 'Sin premio USDC',
+        players: 150, promoTop: 30,
+        gradient: 'linear-gradient(135deg,#cd7f32,#a0522d)',
+        textColor: '#fff', icon: '○',
+      },
+      {
+        id: 'silver', label: 'Plata',
+        range: 'Posiciones 76–150',
+        prize: 'Top 5 comparten 50 USDC',
+        players: 75, promoTop: 15,
+        gradient: 'linear-gradient(135deg,#a8a9ad,#6e6e6e)',
+        textColor: '#fff', icon: '◈',
+      },
+      {
+        id: 'gold', label: 'Oro',
+        range: 'Posiciones 26–75', isMe: true,
+        prize: 'Top 10 comparten 200 USDC',
+        players: 50, promoTop: 10,
+        gradient: 'linear-gradient(135deg,#e8c547,#c9a93a)',
+        textColor: '#0a0a0f', icon: '◆',
+      },
+      {
+        id: 'diamond', label: 'Diamante',
+        range: 'Top 25',
+        prize: 'Top 50 comparten 4,570 USDC',
+        players: 25, promoTop: 0,
+        gradient: 'linear-gradient(135deg,#9b7ff4,#3ecfb2)',
+        textColor: '#fff', icon: '💎',
+      },
+    ];
+
+    const LB_DATA = {
+      gold: [
+        { rank:1,  init:'CK', name:'cryptoking',  xp:12400, acc:72, preds:48, status:'up' },
+        { rank:2,  init:'EM', name:'elisa.m',      xp:11100, acc:69, preds:51, status:'up' },
+        { rank:3,  init:'DV', name:'datavibes',    xp:9800,  acc:71, preds:39, status:'up' },
+        { rank:4,  init:'SL', name:'solana_luke',  xp:8900,  acc:65, preds:44, status:'up' },
+        { rank:5,  init:'MR', name:'marta_r',      xp:8200,  acc:68, preds:42, status:'up' },
+        { rank:6,  init:'JP', name:'javi_preds',   xp:7700,  acc:64, preds:50, status:'safe' },
+        { rank:7,  init:'TW', name:'tw_crypto',    xp:7100,  acc:63, preds:38, status:'safe' },
+        { rank:8,  init:'BB', name:'bigbrain_',    xp:6800,  acc:60, preds:47, status:'safe' },
+        { rank:9,  init:'AL', name:'analista_lp',  xp:6200,  acc:61, preds:41, status:'safe' },
+        { rank:10, init:'NO', name:'noisetrader',  xp:5900,  acc:59, preds:36, status:'safe' },
+        { rank:23, init:'AR', name:'ariverol',     xp:4200,  acc:68, preds:89, status:'safe', isMe:true },
+        { rank:46, init:'QQ', name:'qqpredict',    xp:1200,  acc:48, preds:22, status:'down' },
+        { rank:47, init:'ZZ', name:'zero_alpha',   xp:1100,  acc:46, preds:19, status:'down' },
+        { rank:48, init:'GH', name:'ghost_hand',   xp:980,   acc:44, preds:17, status:'down' },
+        { rank:49, init:'UU', name:'unlucky99',    xp:720,   acc:41, preds:15, status:'down' },
+        { rank:50, init:'LL', name:'lastplace_',   xp:510,   acc:38, preds:11, status:'down' },
+      ],
+      diamond: [
+        { rank:1,  init:'WK', name:'whale_king',  xp:38200, acc:81, preds:120, status:'safe' },
+        { rank:2,  init:'QP', name:'quantpred',   xp:35100, acc:79, preds:98,  status:'safe' },
+        { rank:3,  init:'AI', name:'ai_trader_x', xp:29800, acc:77, preds:89,  status:'safe' },
+      ],
+      silver: [
+        { rank:1,  init:'PG', name:'pgomez_',     xp:3900,  acc:61, preds:31, status:'up' },
+        { rank:2,  init:'RA', name:'rafaelx',     xp:3700,  acc:59, preds:28, status:'up' },
+        { rank:3,  init:'MC', name:'moonchaser',  xp:3500,  acc:57, preds:33, status:'up' },
+      ],
+      bronze: [
+        { rank:1,  init:'NN', name:'newbie_nft',  xp:800,   acc:52, preds:14, status:'up' },
+        { rank:2,  init:'LM', name:'lurker_max',  xp:750,   acc:50, preds:12, status:'up' },
+        { rank:3,  init:'ST', name:'starter_xo',  xp:700,   acc:49, preds:11, status:'up' },
+      ],
+    };
+
+    const PRIZES = {
+      gold:    [ ['1º','60 USDC'],['2º','40 USDC'],['3º–5º','25 USDC c/u'],['6º–10º','12 USDC c/u'] ],
+      diamond: [ ['1º','800 USDC'],['2º','500 USDC'],['3º–5º','280 USDC c/u'],['6º–15º','110 USDC c/u'],['16º–25º','60 USDC c/u'] ],
+      silver:  [ ['1º','20 USDC'],['2º–5º','7.5 USDC c/u'] ],
+      bronze:  [ ['Sin premios esta liga','—'] ],
+    };
+
+    let currentTab = 'gold';
+
+    // ─── INIT ──────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      renderNav('leagues');
+      renderBottomNav('leagues');
+      renderTierCards();
+      renderTimer();
+      setInterval(renderTimer, 1000);
+      loadLeagueData('gold');
+    });
+
+    // ─── TIER CARDS ─────────────────────────────────────────────
+    function renderTierCards() {
+      document.getElementById('tier-cards').innerHTML = TIERS.map(t => `
+        <div class="tier-card ${t.id} ${t.isMe ? 'active-tier' : ''}"
+             onclick="switchTab(null, '${t.id}')">
+          <div class="tier-icon">${t.icon}</div>
+          <div class="tier-name">${t.label}</div>
+          <div class="tier-range">${t.range}</div>
+          <div class="tier-prize">${t.prize}</div>
+          <div class="tier-players">${t.players} jugadores</div>
+          ${t.isMe ? '<div class="my-tier-badge">Tu liga actual</div>' : ''}
+        </div>
+      `).join('');
+    }
+
+    // ─── COUNTDOWN ──────────────────────────────────────────────
+    function renderTimer() {
+      // Simula cierre el domingo a las 23:59
+      const now = new Date();
+      const sunday = new Date(now);
+      sunday.setDate(now.getDate() + (7 - now.getDay()) % 7 || 7);
+      sunday.setHours(23, 59, 59, 0);
+      const diff = sunday - now;
+
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+
+      document.getElementById('timer').innerHTML = [
+        [d, 'días'], [h, 'horas'], [m, 'min'], [s, 'seg']
+      ].map(([v, l]) => `
+        <div class="timer-chip">
+          <span class="timer-chip-val">${String(v).padStart(2,'0')}</span>
+          <span class="timer-chip-lbl">${l}</span>
+        </div>
+      `).join('');
+    }
+
+    // ─── TABS ────────────────────────────────────────────────────
+    async function loadLeagueData(tier) {
+      try {
+        const res  = await fetch(`${BASE_URL}/leagues/${tier}`);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length) {
+          const userId = localStorage.getItem('foresight_user_id');
+          LB_DATA[tier] = data.map(u => ({
+            rank: u.rank,
+            init: (u.username||'U').slice(0,2).toUpperCase(),
+            name: u.username,
+            xp:   u.xp,
+            acc:  u.accuracy,
+            preds: u.predictions_count,
+            status: u.rank <= Math.floor(data.length * 0.2) ? 'up'
+                  : u.rank >= data.length - Math.floor(data.length * 0.2) ? 'down' : 'safe',
+            isMe: u.id === userId,
+          }));
+        }
+      } catch(e) { console.warn('Usando datos locales para ligas'); }
+      loadLeagueData(tier);
+    }
+
+    function switchTab(el, tier) {
+      currentTab = tier;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      if (el) el.classList.add('active');
+      else {
+        // activado desde tier card, busca el tab por texto
+        document.querySelectorAll('.tab').forEach(t => {
+          if (t.getAttribute('onclick')?.includes(tier)) t.classList.add('active');
+        });
+      }
+      loadLeagueData(tier);
+    }
+
+    // ─── LEADERBOARD TABLE ───────────────────────────────────────
+    function renderLeaderboard(tier) {
+      const data = LB_DATA[tier] || [];
+      const t = TIERS.find(x => x.id === tier);
+      const promoCount = t?.promoTop || 0;
+      const demoteFrom = (t?.players || 50) - Math.floor((t?.players || 50) * 0.2);
+
+      const rows = data.map(u => {
+        const isTop = u.rank <= 3;
+        const statusLabel = u.status === 'up'
+          ? `<span class="promo-up">↑ Asciende</span>`
+          : u.status === 'down'
+          ? `<span class="promo-down">↓ Desciende</span>`
+          : `<span class="promo-safe">—</span>`;
+
+        return `
+          <tr class="${u.isMe ? 'tr-me' : ''}">
+            <td><span class="rank-cell ${isTop ? 'rank-top' : ''}">${u.rank}</span></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-av" style="background:${u.isMe ? 'linear-gradient(135deg,var(--purple),var(--teal))' : 'var(--surface3)'};color:${u.isMe ? '#fff' : 'var(--muted)'}">
+                  ${u.init}
+                </div>
+                <div>
+                  <div class="user-name">${u.isMe ? '<span style="color:var(--accent)">tú</span>' : u.name}</div>
+                  ${u.isMe ? '<div class="user-badge">← posición actual</div>' : ''}
+                </div>
+              </div>
+            </td>
+            <td class="xp-cell">+${(u.xp/1000).toFixed(1)}k</td>
+            <td class="acc-cell">${u.acc}%</td>
+            <td class="preds-cell">${u.preds}</td>
+            <td class="promo-cell">${statusLabel}</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('lb-table').innerHTML = `
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Usuario</th>
+            <th>XP</th>
+            <th>Precisión</th>
+            <th>Predicciones</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>${rows.join('')}</tbody>
+      `;
+    }
+
+    // ─── PRIZES ─────────────────────────────────────────────────
+    function renderPrizes(tier) {
+      const prizes = PRIZES[tier] || [];
+      const t = TIERS.find(x => x.id === tier);
+      document.getElementById('prize-section').innerHTML = `
+        <div class="prize-title">Reparto de premios · Liga ${t?.label}</div>
+        ${prizes.map(([pos, amount]) => `
+          <div class="prize-row">
+            <span class="prize-pos">${pos}</span>
+            <span class="prize-amount">${amount}</span>
+          </div>
+        `).join('')}
+      `;
+    }
+  </script>
+</body>
+</html>

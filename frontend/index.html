@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foresight — Mercados</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div id="nav-placeholder"></div>
+
+  <div class="layout">
+    <div id="sidebar-placeholder"></div>
+
+    <main class="main">
+
+      <!-- Desafío diario -->
+      <div class="fade-up">
+        <div class="section-header">
+          <span class="section-title">Desafío del día</span>
+          <span class="section-link">¿Cómo funciona? →</span>
+        </div>
+        <div class="daily-card">
+          <div style="flex:1">
+            <div class="daily-label">⚡ Racha activa: <span id="streak-count"></span> días</div>
+            <div class="daily-title" id="daily-question"></div>
+            <div class="daily-rewards">
+              Recompensa de racha:
+              <span class="reward-chip" id="daily-xp"></span>
+              <span class="reward-chip" id="daily-usdc"></span>
+            </div>
+          </div>
+          <button class="btn-primary" id="daily-btn" onclick="handleDailyBet()">
+            Predecir ahora
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros + mercados -->
+      <div>
+        <div class="section-header">
+          <span class="section-title">Mercados activos</span>
+          <span class="section-link" onclick="sortByVolume()">Ordenar por volumen</span>
+        </div>
+        <div class="cat-pills" id="cat-pills">
+          <div class="cat-pill active crypto"   onclick="toggleCat(this,'crypto')">Crypto</div>
+          <div class="cat-pill active politics" onclick="toggleCat(this,'politics')">Política</div>
+          <div class="cat-pill active sports"   onclick="toggleCat(this,'sports')">Deportes</div>
+          <div class="cat-pill active science"  onclick="toggleCat(this,'science')">Ciencia</div>
+        </div>
+        <div class="markets-grid" id="markets-grid"></div>
+      </div>
+
+    </main>
+
+    <div id="right-panel-placeholder"></div>
+  </div>
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/mobile.js"></script>
+  <script src="js/wallet.js"></script>
+ <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      renderNav('index');
+      renderRightPanel();
+      renderBottomNav('index');
+      renderDailyChallenge();
+
+      const markets = await getMarkets();
+      renderMarkets(markets);
+
+      const counts = {
+        all:      markets.length,
+        crypto:   markets.filter(m => m.category==='crypto').length,
+        politics: markets.filter(m => m.category==='politics').length,
+        sports:   markets.filter(m => m.category==='sports').length,
+        science:  markets.filter(m => m.category==='science').length,
+      };
+      renderSidebar(counts);
+    });
+
+    function renderDailyChallenge() {
+      document.getElementById('streak-count').textContent = CURRENT_USER.streak;
+      document.getElementById('daily-question').textContent = DAILY_CHALLENGE.question;
+      document.getElementById('daily-xp').textContent   = `+${DAILY_CHALLENGE.streakMultiplier}× XP`;
+      document.getElementById('daily-usdc').textContent = `+${DAILY_CHALLENGE.bonusUsdc} USDC`;
+    }
+
+    function renderMarkets(list) {
+      const grid = document.getElementById('markets-grid');
+      grid.innerHTML = '';
+      list.forEach((m, i) => {
+        const card = createMarketCard(m);
+        card.style.animationDelay = `${i * 0.05}s`;
+        grid.appendChild(card);
+      });
+    }
+
+    let activeCats = new Set(['crypto','politics','sports','science']);
+
+    function toggleCat(el, cat) {
+      if (activeCats.has(cat)) {
+        if (activeCats.size === 1) return;
+        activeCats.delete(cat);
+        el.classList.remove('active', cat);
+      } else {
+        activeCats.add(cat);
+        el.classList.add('active', cat);
+      }
+      getMarkets().then(all => {
+        const filtered = all.filter(m => activeCats.has(m.category));
+        renderMarkets(filtered);
+      });
+    }
+
+    function sortByVolume() {
+      getMarkets().then(markets => {
+        renderMarkets([...markets].sort((a,b) => b.pool - a.pool));
+      });
+    }
+
+    function handleDailyBet() {
+      const btn = document.getElementById('daily-btn');
+      btn.textContent = '¡Predicción guardada!';
+      btn.style.background = 'var(--teal)';
+      btn.disabled = true;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+/* ─── RESPONSIVE ────────────────────────────────────────────
+   Breakpoints:
+   - Desktop:  > 1024px  → layout 3 columnas
+   - Tablet:   768–1024px → layout 2 columnas (sin panel derecho)
+   - Mobile:   < 768px   → 1 columna, nav hamburguesa
+──────────────────────────────────────────────────────────── */
+
+/* ── TABLET ─────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 220px 1fr;
+  }
+  #right-panel-placeholder { display: none; }
+
+  .main { padding: 20px 22px; }
+}
+
+/* ── MOBILE ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Layout: 1 columna */
+  .layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  #sidebar-placeholder { display: none; }
+  #right-panel-placeholder { display: none; }
+
+  .main { padding: 16px; gap: 20px; }
+
+  /* Nav mobile */
+  .nav {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .nav-links { display: none; } /* sustituido por bottom nav */
+
+  .nav-right { margin-left: auto; }
+
+  .streak-badge { padding: 4px 10px; font-size: 11px; }
+
+  /* Bottom navigation bar */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(10,10,15,0.96);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+    padding: 0 0 env(safe-area-inset-bottom, 0);
+  }
+
+  .bottom-nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 10px 4px 8px;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--muted); cursor: pointer;
+    border: none; background: none;
+    font-family: var(--font);
+    gap: 4px; transition: color 0.15s;
+  }
+  .bottom-nav-item.active { color: var(--accent); }
+  .bottom-nav-item:hover  { color: var(--text); }
+
+  .bottom-nav-icon { font-size: 18px; line-height: 1; }
+
+  /* Espacio para bottom nav */
+  body { padding-bottom: 64px; }
+
+  /* Daily card */
+  .daily-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+  }
+  .daily-card .btn-primary { width: 100%; text-align: center; }
+  .daily-title { font-size: 15px; }
+
+  /* Market cards */
+  .market-card { padding: 14px 16px; }
+  .market-question { font-size: 14px; }
+
+  /* Bet buttons */
+  .bet-btn  { padding: 8px 10px; }
+  .bet-pct  { font-size: 12px; }
+
+  /* Category pills scroll horizontal */
+  .cat-pills {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    gap: 6px;
+    scrollbar-width: none;
+  }
+  .cat-pills::-webkit-scrollbar { display: none; }
+  .cat-pill { flex-shrink: 0; }
+
+  /* Section header */
+  .section-header { margin-bottom: 10px; }
+
+  /* Profile page */
+  .profile-layout { padding: 20px 16px; }
+
+  .profile-hero {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .profile-avatar-lg { width: 56px; height: 56px; font-size: 18px; }
+  .profile-username  { font-size: 20px; }
+
+  .big-stat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .big-stat-value { font-size: 22px; }
+
+  .rep-grid { grid-template-columns: 1fr; }
+
+  .history-item {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 6px;
+  }
+  .history-item .history-pnl { grid-column: 2; grid-row: 1; }
+  .history-item .history-result { display: none; } /* ocultar en mobile, el color del pnl ya indica */
+
+  /* Create page */
+  .create-layout { padding: 20px 16px; }
+  .date-row      { flex-direction: column; }
+
+  /* Market detail */
+  .detail-layout {
+    grid-template-columns: 1fr;
+    padding: 16px;
+    gap: 16px;
+  }
+  .market-stats-card { position: static; }
+  .detail-question   { font-size: 18px; }
+
+  .vote-btn-pct { font-size: 18px; }
+
+  /* Leagues page */
+  .leagues-layout { padding: 20px 16px; }
+
+  .league-tiers { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tier-card    { padding: 14px; }
+  .tier-name    { font-size: 18px; }
+
+  .leagues-table-wrap { overflow-x: auto; }
+  .leagues-table { min-width: 440px; }
+
+  /* Back button */
+  .back-btn { padding: 0; margin-bottom: 16px; }
+
+  .market-detail-header { padding: 16px 16px 0; }
+}
+
+/* ── SMALL MOBILE ────────────────────────────────────────── */
+@media (max-width: 380px) {
+  .nav-logo    { font-size: 16px; }
+  .streak-badge { display: none; }
+
+  .big-stat-grid { grid-template-columns: 1fr 1fr; }
+  .big-stat-value { font-size: 18px; }
+
+  .league-tiers { grid-template-columns: 1fr; }
+}
