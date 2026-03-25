@@ -132,6 +132,8 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.9.0/ethers.umd.min.js"></script>
+<script src="js/contract.js"></script>
   <script src="js/data.js"></script>
   <script src="js/api.js"></script>
   <script src="js/ui.js"></script>
@@ -162,10 +164,24 @@
 
     async function renderMarketDetail(m) {
       const layout = document.getElementById('detail-layout');
-      const yes = m.yes_pct ?? 50;
-      const no  = m.no_pct  ?? 50;
       const closes = m.closes_at ? formatDate(m.closes_at) : '—';
-      const pool = Number(m.pool).toLocaleString();
+      let pool = Number(m.pool).toLocaleString();
+let yes = m.yes_pct ?? 50;
+let no = m.no_pct ?? 50;
+try {
+  if (m.contract_market_id !== null && m.contract_market_id !== undefined && typeof getContracts === 'function') {
+    const { foresight } = await getContracts();
+    const onchain = await foresight.getMarket(m.contract_market_id);
+    const poolYes = parseFloat(ethers.formatUnits(onchain[2], 6));
+    const poolNo  = parseFloat(ethers.formatUnits(onchain[3], 6));
+    const total   = poolYes + poolNo;
+    if (total > 0) {
+      pool = total.toFixed(2);
+      yes  = Math.round((poolYes / total) * 100);
+      no   = 100 - yes;
+    }
+  }
+} catch(e) {}
       const userId = localStorage.getItem('foresight_user_id');
 
       // Comprobar si el usuario ya apostó
@@ -316,38 +332,54 @@
 
     async function confirmBet() {
       if (!selectedSide || !currentMarket) return;
+
+      const userId = localStorage.getItem('foresight_user_id');
+      if (!userId) { alert('Conecta tu wallet primero'); return; }
+
       const amount = parseFloat(document.getElementById('amount-input')?.value);
       if (!amount || amount < 0.1 || amount > 10) {
-        alert('Cantidad entre 0.1 y 10 USDC'); return;
+        alert('Cantidad entre 0.1 y 10 USDT'); return;
       }
 
       const btn = document.getElementById('confirm-btn');
-      btn.textContent = 'Confirmando...';
+      btn.textContent = 'Aprobando USDT...';
       btn.disabled = true;
 
-      const result = await placePrediction(currentMarket.id, selectedSide, amount);
+      const chainResult = await placePredictionOnChain(
+        currentMarket.contract_market_id ?? currentMarket.id,
+        selectedSide,
+        amount
+      );
 
-      if (result.error) {
-        btn.textContent = result.error;
+      if (chainResult.error) {
+        btn.textContent = chainResult.error.slice(0, 60);
         btn.style.background = 'rgba(242,107,80,0.2)';
         setTimeout(() => {
           btn.textContent = `Confirmar: ${selectedSide === 'yes' ? 'SÍ' : 'NO'}`;
           btn.style.background = '';
           btn.disabled = false;
-        }, 3000);
+        }, 4000);
         return;
       }
 
-      btn.textContent = `✓ Apostado ${amount} USDC — ${selectedSide === 'yes' ? 'SÍ' : 'NO'}`;
+      btn.textContent = 'Guardando en base de datos...';
+      const dbResult = await placePrediction(currentMarket.id, selectedSide, amount);
+      if (dbResult.error) console.warn('Error BD pero TX OK:', chainResult.txHash);
+
+      btn.textContent = `✓ Apostado ${amount} USDT — ${selectedSide === 'yes' ? 'SÍ' : 'NO'}`;
       btn.style.background = selectedSide === 'yes' ? 'var(--teal)' : 'var(--coral)';
       btn.style.color = '#fff';
       document.querySelectorAll('.vote-btn').forEach(b => b.onclick = null);
 
-      // Recargar el mercado para actualizar porcentajes
+      const txDiv = document.createElement('div');
+      txDiv.style.cssText = 'margin-top:10px;font-size:11px;color:var(--muted);font-family:var(--mono)';
+      txDiv.innerHTML = `TX: <a href="https://sepolia.etherscan.io/tx/${chainResult.txHash}" target="_blank" style="color:var(--accent)">${chainResult.txHash.slice(0,20)}...</a>`;
+      btn.parentNode.appendChild(txDiv);
+
       setTimeout(async () => {
         const updated = await getMarket(currentMarket.id);
         if (!updated.error) { currentMarket = updated; renderMarketDetail(updated); }
-      }, 1500);
+      }, 2000);
     }
   </script>
 </body>

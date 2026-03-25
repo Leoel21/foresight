@@ -49,5 +49,58 @@ router.post('/', async (req, res) => {
   if (error) return res.status(500).json({ error: error.message });
   res.status(201).json(data);
 });
+// POST /api/markets/:id/resolve — resolver un mercado
+router.post('/:id/resolve', async (req, res) => {
+  const { result, tx_hash } = req.body;
+  if (!['yes', 'no'].includes(result)) {
+    return res.status(400).json({ error: 'result debe ser yes o no' });
+  }
+
+  const { data: market } = await supabase
+    .from('markets')
+    .select('id, pool, yes_pct, no_pct')
+    .eq('id', req.params.id)
+    .single();
+
+  if (!market) return res.status(404).json({ error: 'Mercado no encontrado' });
+
+  // Marcar mercado como resuelto
+  await supabase
+    .from('markets')
+    .update({ resolved: true, result })
+    .eq('id', req.params.id);
+
+  // Calcular payouts para los ganadores
+  const { data: predictions } = await supabase
+    .from('predictions')
+    .select('*')
+    .eq('market_id', req.params.id);
+
+  if (predictions && predictions.length) {
+    const winners = predictions.filter(p => p.side === result);
+    const totalPool = parseFloat(market.pool);
+    const netPool = totalPool * 0.97;
+    const winningSideTotal = winners.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+
+    for (const p of predictions) {
+      const correct = p.side === result;
+      const payout = correct && winningSideTotal > 0
+        ? (parseFloat(p.amount) / winningSideTotal) * netPool
+        : 0;
+
+      await supabase
+        .from('predictions')
+        .update({ correct, payout: correct ? payout.toFixed(4) : 0 })
+        .eq('id', p.id);
+
+      // Actualizar accuracy del usuario
+      if (correct) {
+        await supabase.rpc('increment', { table: 'users', id: p.user_id, column: 'xp', amount: 50 });
+      }
+    }
+  }
+
+  res.json({ success: true, result, tx_hash });
+});
 
 module.exports = router;

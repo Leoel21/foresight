@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foresight — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    .admin-layout { max-width: 700px; margin: 0 auto; padding: 40px 24px; }
+    .admin-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .admin-sub { color: var(--muted); font-size: 14px; margin-bottom: 36px; }
+    .market-admin-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px;
+    }
+    .market-admin-question { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .market-admin-meta { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-bottom: 16px; }
+    .resolve-row { display: flex; gap: 10px; }
+    .btn-yes { background: rgba(62,207,178,0.15); border: 1px solid rgba(62,207,178,0.4); color: var(--teal); padding: 10px 20px; border-radius: var(--radius-md); cursor: pointer; font-family: var(--font); font-weight: 700; transition: all 0.15s; }
+    .btn-no  { background: rgba(242,107,80,0.15);  border: 1px solid rgba(242,107,80,0.4);  color: var(--coral); padding: 10px 20px; border-radius: var(--radius-md); cursor: pointer; font-family: var(--font); font-weight: 700; transition: all 0.15s; }
+    .btn-yes:hover { background: rgba(62,207,178,0.25); }
+    .btn-no:hover  { background: rgba(242,107,80,0.25); }
+    .status-msg { font-size: 13px; margin-top: 10px; font-family: var(--mono); }
+  </style>
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+  <div class="admin-layout">
+    <div class="admin-title">Panel de Admin</div>
+    <div class="admin-sub">Solo el owner del contrato puede resolver mercados.</div>
+    <div id="markets-admin"></div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <script src="js/contract.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/wallet.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      renderNav('index');
+
+      // Cargar mercados de Supabase con contract_market_id
+      const markets = await getMarkets();
+      const container = document.getElementById('markets-admin');
+
+      if (!markets.length) {
+        container.innerHTML = '<div style="color:var(--muted)">No hay mercados</div>';
+        return;
+      }
+
+      container.innerHTML = markets.map(m => `
+        <div class="market-admin-card">
+          <div class="market-admin-question">${m.question}</div>
+          <div class="market-admin-meta">
+            ID Supabase: ${m.id.slice(0,8)}... | 
+            ID Contrato: ${m.contract_market_id ?? 'Sin mapear'} | 
+            Pool: ${m.pool} USDT
+          </div>
+          <div class="resolve-row">
+            <button class="btn-yes" onclick="resolveMarket('${m.id}', ${m.contract_market_id}, 0)">✓ SÍ ganó</button>
+            <button class="btn-no"  onclick="resolveMarket('${m.id}', ${m.contract_market_id}, 1)">✗ NO ganó</button>
+          </div>
+          <div class="status-msg" id="status-${m.id}"></div>
+        </div>
+      `).join('');
+    });
+
+    async function resolveMarket(supabaseId, contractId, result) {
+      const statusEl = document.getElementById(`status-${supabaseId}`);
+      if (contractId === null || contractId === undefined) {
+        statusEl.style.color = 'var(--coral)';
+        statusEl.textContent = 'Error: mercado sin ID de contrato';
+        return;
+      }
+
+      statusEl.style.color = 'var(--muted)';
+      statusEl.textContent = 'Resolviendo en blockchain...';
+
+      try {
+        const { foresight } = await getContracts();
+        const tx = await foresight.resolveMarket(contractId, result);
+        await tx.wait();
+
+        statusEl.textContent = 'TX confirmada. Actualizando Supabase...';
+
+        // Actualizar en Supabase
+        const res = await fetch(`${BASE_URL}/markets/${supabaseId}/resolve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ result: result === 0 ? 'yes' : 'no', tx_hash: tx.hash }),
+        });
+
+        if (res.ok) {
+          statusEl.style.color = 'var(--teal)';
+          statusEl.textContent = `✓ Mercado resuelto. TX: ${tx.hash.slice(0,20)}...`;
+        } else {
+          statusEl.style.color = 'var(--coral)';
+          statusEl.textContent = 'TX ok pero error en Supabase';
+        }
+      } catch(e) {
+        statusEl.style.color = 'var(--coral)';
+        statusEl.textContent = `Error: ${e.message.slice(0,80)}`;
+      }
+    }
+  </script>
+</body>
+</html>

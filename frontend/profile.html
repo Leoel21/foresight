@@ -140,93 +140,114 @@
 
   </div>
 
-  <script src="js/data.js"></script>
-  <script src="js/ui.js"></script>
-  <script>
-    const REP_BY_CAT = [
-      { cat: 'Crypto',   color: 'var(--accent)',  accuracy: 72, predictions: 38 },
-      { cat: 'Política', color: 'var(--purple)',  accuracy: 61, predictions: 21 },
-      { cat: 'Deportes', color: 'var(--teal)',    accuracy: 65, predictions: 18 },
-      { cat: 'Ciencia',  color: 'var(--coral)',   accuracy: 75, predictions: 12 },
-    ];
-
-    const HISTORY = [
-      { question: '¿Superará SOL los $300?',               cat: 'crypto',   side: 'SÍ',  result: 'ACERTÓ', pnl: +1.8  },
-      { question: '¿Gana España el Eurobasket 2025?',      cat: 'sports',   side: 'SÍ',  result: 'FALLÓ',  pnl: -0.5  },
-      { question: '¿Baja la inflación UE en marzo?',       cat: 'politics', side: 'SÍ',  result: 'ACERTÓ', pnl: +2.2  },
-      { question: '¿Llega BTC a $100K en 2025?',           cat: 'crypto',   side: 'SÍ',  result: 'ACERTÓ', pnl: +3.1  },
-      { question: '¿Ganará el PP las elecciones 2024?',    cat: 'politics', side: 'NO',  result: 'FALLÓ',  pnl: -1.0  },
-      { question: '¿Publicará Apple un VR nuevo en 2025?', cat: 'science',  side: 'SÍ',  result: 'ACERTÓ', pnl: +0.9  },
-    ];
-
-    document.addEventListener('DOMContentLoaded', () => {
-      renderNav('profile');
-      renderBottomNav('profile');
-      renderProfile();
-    });
-
-    function renderProfile() {
-      // Hero
-      document.querySelector('.profile-avatar-lg').textContent = CURRENT_USER.initials;
-      document.getElementById('profile-username').textContent  = CURRENT_USER.username;
-      document.getElementById('profile-balance').textContent   = CURRENT_USER.balance.toFixed(1);
-      document.getElementById('profile-badges').innerHTML = `
-        <span class="badge badge-gold">◆ Liga ${CURRENT_USER.league}</span>
-        <span class="badge badge-teal">🔥 Racha ${CURRENT_USER.streak}d</span>
-        <span class="badge badge-purple">⚡ Top Crypto</span>
-      `;
-
-      // Big stats
-      const stats = [
-        { label: 'Precisión global', value: `${CURRENT_USER.accuracy}%`, sub: '+2.1% esta semana', cls: 'stat-up' },
-        { label: 'XP total',         value: `${(CURRENT_USER.xp/1000).toFixed(1)}k`, sub: 'Rango #23 Liga Oro', cls: '' },
-        { label: 'Predicciones',     value: CURRENT_USER.predictions, sub: '61 resueltas · 28 activas', cls: '' },
-        { label: 'Mercados creados', value: 3, sub: '187 participantes totales', cls: '' },
-      ];
-      document.getElementById('big-stats').innerHTML = stats.map(s => `
-        <div class="big-stat">
-          <div class="big-stat-label">${s.label}</div>
-          <div class="big-stat-value">${s.value}</div>
-          <div class="big-stat-sub ${s.cls}">${s.sub}</div>
-        </div>
-      `).join('');
-
-      // Reputación por categoría
-      document.getElementById('rep-grid').innerHTML = REP_BY_CAT.map(r => `
-        <div class="rep-card">
-          <div class="rep-top">
-            <div class="rep-cat" style="color:${r.color}">${r.cat}</div>
-            <div class="rep-accuracy" style="color:${r.color}">${r.accuracy}%</div>
-          </div>
-          <div class="rep-bar-bg">
-            <div class="rep-bar-fill" style="width:${r.accuracy}%;background:${r.color}"></div>
-          </div>
-          <div class="rep-meta">${r.predictions} predicciones</div>
-        </div>
-      `).join('');
-
-      // Historial
-      document.getElementById('history-list').innerHTML = HISTORY.map(h => `
-        <div class="history-item">
-          <div>
-            <div class="history-q">${h.question}</div>
-            <div class="history-cat">${h.cat} · Apostó: ${h.side}</div>
-          </div>
-          <div class="history-result" style="color:${h.result === 'ACERTÓ' ? 'var(--teal)' : 'var(--coral)'}">
-            ${h.result}
-          </div>
-          <div class="history-pnl ${h.pnl > 0 ? 'pnl-pos' : 'pnl-neg'}">
-            ${h.pnl > 0 ? '+' : ''}${h.pnl.toFixed(1)} USDC
-          </div>
-        </div>
-      `).join('');
-    }
-  </script>
-    <script src="js/config.js"></script>
+<script src="js/config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.9.0/ethers.umd.min.js"></script>
+  <script src="js/contract.js"></script>
   <script src="js/data.js"></script>
   <script src="js/api.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/mobile.js"></script>
   <script src="js/wallet.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      renderNav('profile');
+      renderBottomNav('profile');
+
+      const userId = localStorage.getItem('foresight_user_id');
+      const walletAddr = localStorage.getItem('foresight_wallet_address');
+
+      if (!userId) {
+        document.querySelector('.profile-avatar-lg').textContent = '??';
+        return;
+      }
+
+      try {
+        const [userRes, statsRes, predsRes] = await Promise.all([
+          fetch(`${BASE_URL}/users/${userId}`),
+          fetch(`${BASE_URL}/users/${userId}/stats`),
+          fetch(`${BASE_URL}/predictions/user/${userId}`),
+        ]);
+
+        const user  = await userRes.json();
+        const stats = await statsRes.json();
+        const preds = await predsRes.json();
+
+        let balance = 0;
+        try {
+          if (walletAddr && typeof getUSDTBalance === 'function') {
+            balance = await getUSDTBalance(walletAddr);
+          }
+        } catch(e) {}
+
+        document.querySelector('.profile-avatar-lg').textContent = (user.username || 'U').slice(0,2).toUpperCase();
+        document.getElementById('profile-username').textContent  = user.username || 'Usuario';
+        document.getElementById('profile-balance').textContent   = parseFloat(balance).toFixed(2);
+        document.getElementById('profile-badges').innerHTML = `
+          <span class="badge badge-gold">◆ Liga ${user.league || 'Bronce'}</span>
+          <span class="badge badge-teal">🔥 Racha ${user.streak || 0}d</span>
+        `;
+
+        document.getElementById('big-stats').innerHTML = `
+          <div class="big-stat">
+            <div class="big-stat-label">Precisión global</div>
+            <div class="big-stat-value">${stats.accuracy || 0}<span style="font-size:14px;color:var(--muted)">%</span></div>
+          </div>
+          <div class="big-stat">
+            <div class="big-stat-label">XP total</div>
+            <div class="big-stat-value">${user.xp >= 1000 ? (user.xp/1000).toFixed(1)+'k' : user.xp || 0}</div>
+          </div>
+          <div class="big-stat">
+            <div class="big-stat-label">Predicciones</div>
+            <div class="big-stat-value">${stats.totalPredictions || 0}</div>
+          </div>
+          <div class="big-stat ${parseFloat(stats.totalPnl) >= 0 ? 'stat-up' : 'stat-down'}">
+            <div class="big-stat-label">P&L total</div>
+            <div class="big-stat-value">${parseFloat(stats.totalPnl || 0).toFixed(2)}</div>
+            <div class="big-stat-sub muted">USDT</div>
+          </div>
+        `;
+
+        const catStats = stats.categoryStats || [];
+        document.getElementById('rep-grid').innerHTML = catStats.length
+          ? catStats.map(c => `
+            <div class="rep-card">
+              <div class="rep-cat">${c.category}</div>
+              <div class="rep-accuracy">${c.accuracy}%</div>
+              <div class="rep-meta">${c.predictions} predicciones</div>
+            </div>`).join('')
+          : '<div style="color:var(--muted);font-size:13px">Sin predicciones todavía</div>';
+
+        document.getElementById('history-list').innerHTML = Array.isArray(preds) && preds.length
+          ? preds.map(p => {
+              const won = p.correct === true;
+              const lost = p.correct === false;
+              const dotColor = won ? 'var(--teal)' : lost ? 'var(--coral)' : 'var(--accent)';
+              const label = won ? 'Acertaste' : lost ? 'Fallaste' : 'Pendiente';
+              const pnl = won
+                ? `<span style="color:var(--teal)">+${parseFloat(p.payout||0).toFixed(2)} USDT</span>`
+                : lost
+                ? `<span style="color:var(--coral)">-${parseFloat(p.amount).toFixed(2)} USDT</span>`
+                : `<span style="color:var(--accent)">${parseFloat(p.amount).toFixed(2)} USDT apostado</span>`;
+              const q = p.markets?.question || 'Mercado';
+              return `
+                <div class="history-item">
+                  <div class="h-dot" style="background:${dotColor}"></div>
+                  <div class="h-body">
+                    <div class="h-question">${q.slice(0,60)}${q.length>60?'...':''}</div>
+                    <div class="h-meta">
+                      <span class="badge ${won?'badge-teal':lost?'badge-coral':'badge-gold'}">${label}</span>
+                      <span style="font-family:var(--mono);font-size:12px">${p.side==='yes'?'SÍ':'NO'}</span>
+                      ${pnl}
+                    </div>
+                  </div>
+                </div>`;
+            }).join('')
+          : '<div style="color:var(--muted);font-size:13px;padding:8px 0">Sin predicciones todavía</div>';
+
+      } catch(e) {
+        console.error('Error cargando perfil:', e);
+      }
+    });
+  </script>
 </body>
 </html>

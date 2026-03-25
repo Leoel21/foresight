@@ -1,7 +1,7 @@
 // ─── WALLET.JS ───────────────────────────────────────────────
 // Gestiona la conexión con MetaMask y la autenticación onchain.
 
-var SEPOLIA_CHAIN_ID = '0xaa36a7';
+var SEPOLIA_CHAIN_ID = "0x2105";
 var currentWallet = null;
 
 
@@ -70,19 +70,18 @@ async function switchToSepolia() {
   try {
     await window.ethereum.request({
       method: 'wallet_switchEthereumChain',
-      params: [{ chainId: SEPOLIA_CHAIN_ID }],
+      params: [{ chainId: "0x2105" }],
     });
   } catch (e) {
-    // Si Sepolia no está añadida, la añadimos
     if (e.code === 4902) {
       await window.ethereum.request({
         method: 'wallet_addEthereumChain',
         params: [{
-          chainId: SEPOLIA_CHAIN_ID,
-          chainName: 'Sepolia Testnet',
-          nativeCurrency: { name: 'SepoliaETH', symbol: 'ETH', decimals: 18 },
-          rpcUrls: ['https://rpc.sepolia.org'],
-          blockExplorerUrls: ['https://sepolia.etherscan.io'],
+          chainId: "0x2105",
+          chainName: 'Base',
+          nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+          rpcUrls: ['https://mainnet.base.org'],
+          blockExplorerUrls: ['https://basescan.org'],
         }],
       });
     }

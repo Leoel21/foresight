@@ -127,7 +127,15 @@ async function renderRightPanel() {
   }
 
   const accuracy = stats ? stats.accuracy : user.accuracy;
-  const balance  = user.balance || 0;
+  let balance = 0;
+  try {
+    const walletAddr = localStorage.getItem('foresight_wallet_address');
+    if (walletAddr && typeof getUSDTBalance === 'function') {
+      balance = await getUSDTBalance(walletAddr);
+    }
+  } catch(e) {
+    balance = user.balance || 0;
+  }
   const xp       = user.xp || 0;
   const preds    = stats ? stats.totalPredictions : user.predictions_count || 0;
 
